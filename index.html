@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omok Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+            gap: 1px;
+            border: 2px solid black;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .cell.x {
+            background-color: black;
+        }
+
+        .cell.o {
+            background-color: white;
+            border: 2px solid black;
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="game-board" id="gameBoard"></div>
+        <div class="message" id="message">Player X's turn</div>
+    </div>
+
+    <script>
+        const boardSize = 15;
+        let currentPlayer = 'X'; // Player X starts
+        const board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
+
+        const gameBoard = document.getElementById('gameBoard');
+        const message = document.getElementById('message');
+
+        function createBoard() {
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.addEventListener('click', () => onCellClick(i, j));
+                    gameBoard.appendChild(cell);
+                }
+            }
+        }
+
+        function onCellClick(row, col) {
+            if (board[row][col]) return; // If the cell is already occupied, do nothing
+
+            // Mark the cell with the current player's symbol
+            board[row][col] = currentPlayer;
+            const cell = gameBoard.children[row * boardSize + col];
+            cell.classList.add(currentPlayer.toLowerCase());
+
+            if (checkWinner(row, col)) {
+                message.textContent = `${currentPlayer} wins!`;
+                gameBoard.style.pointerEvents = 'none'; // Disable further clicks
+                return;
+            }
+
+            // Switch player
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            message.textContent = `${currentPlayer}'s turn`;
+        }
+
+        function checkWinner(row, col) {
+            return (
+                checkDirection(row, col, 1, 0) ||  // Horizontal
+                checkDirection(row, col, 0, 1) ||  // Vertical
+                checkDirection(row, col, 1, 1) ||  // Diagonal \
+                checkDirection(row, col, 1, -1)    // Diagonal /
+            );
+        }
+
+        function checkDirection(row, col, dRow, dCol) {
+            let count = 1;
+            for (let i = 1; i < 5; i++) {
+                const r = row + i * dRow;
+                const c = col + i * dCol;
+                if (r < 0 || r >= boardSize || c < 0 || c >= boardSize || board[r][c] !== currentPlayer) break;
+                count++;
+            }
+            for (let i = 1; i < 5; i++) {
+                const r = row - i * dRow;
+                const c = col - i * dCol;
+                if (r < 0 || r >= boardSize || c < 0 || c >= boardSize || board[r][c] !== currentPlayer) break;
+                count++;
+            }
+            return count >= 5;
+        }
+
+        createBoard();
+    </script>
+</body>
+</html>
